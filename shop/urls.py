@@ -21,7 +21,7 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="Python20 API",
+      title="Bektur&Joomart API",
       default_version='v1',
       description="This is our API",
    ),
