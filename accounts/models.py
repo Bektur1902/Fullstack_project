@@ -52,7 +52,7 @@ class User(AbstractBaseUser):
 
     def send_activation_code(self):
         from django.core.mail import send_mail
-        activation_link = f'http://127.0.0.1:8000/account/activation/{self.activation_code}'
+        activation_link = f'https://evening-ravine-58086.herokuapp.com/account/activation/{self.activation_code}'
         send_mail(
             'Account activation',
             message=activation_link,
