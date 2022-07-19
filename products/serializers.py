@@ -14,6 +14,7 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.email')
 
