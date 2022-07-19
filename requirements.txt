@@ -10,3 +10,4 @@ drf-yasg
 gunicorn
 django-cors-headers
 whitenoise
+slugify

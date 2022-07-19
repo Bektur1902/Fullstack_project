@@ -1,14 +1,21 @@
 from django.db import models
 
+from slugify import slugify
+
 # Create your models here.
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100)
+    slug = models.SlugField(max_length=100, blank=True, primary_key=True)
 
     def __str__(self) -> str:
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super(Category, self).save(*args, **kwargs)
 
 
 class Product(models.Model):
