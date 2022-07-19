@@ -1,6 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter, BaseFilterBackend
+from rest_framework.filters import SearchFilter
 from rest_framework import permissions
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import ProductSerializer, CategorySerializer, CommentSerializer, ProductListSerializer
 from .models import Product, Category, Comment
@@ -12,7 +13,7 @@ from .permissions import IsAuthor
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    filter_backends = [SearchFilter, BaseFilterBackend]
+    filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name']
     filterset_class = ProductsPriceFilter
     permission_classes = [permissions.AllowAny]
