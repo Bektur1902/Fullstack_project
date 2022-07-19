@@ -2,7 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter, BaseFilterBackend
 from rest_framework import permissions
 
-from .serializers import ProductSerializer, CategorySerializer, CommentSerializer
+from .serializers import ProductSerializer, CategorySerializer, CommentSerializer, ProductListSerializer
 from .models import Product, Category, Comment
 from .filters import ProductsPriceFilter
 from .permissions import IsAuthor
@@ -19,7 +19,7 @@ class ProductViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return ProductSerializer
+            return ProductListSerializer
         return super().get_serializer_class()
 
     def get_permissions(self):
