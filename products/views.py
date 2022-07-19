@@ -1,8 +1,9 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import permissions
 
-from .serializers import ProductSerializer, CategorySerializer
-from .models import Product, Category
+from .serializers import ProductSerializer, CategorySerializer, CommentSerializer
+from .models import Product, Category, Comment
+from .permissions import IsAuthor
 # Create your views here.
 
 
@@ -34,3 +35,11 @@ class CategoryViewSet(ModelViewSet):
             self.permission_classes = [permissions.IsAdminUser]
         return super().get_permissions()
 
+class CommentViewSet(ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def get_permissions(self):
+        if self.action in ['destroy', 'update', 'partial_update']:
+            self.permission_classes = [IsAuthor]
+        return super().get_permissions()
