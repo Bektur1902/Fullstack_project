@@ -3,6 +3,15 @@ from django.contrib.auth import get_user_model
 from slugify import slugify
 
 # Create your models here.
+User = get_user_model()
+
+RATING_CHOICES = (
+        (1, '🌟'),
+        (2, '🌟🌟'),
+        (3, '🌟🌟🌟'),
+        (4, '🌟🌟🌟🌟'),
+        (5, '🌟🌟🌟🌟🌟'),
+    )
 
 
 class Category(models.Model):
@@ -32,7 +41,7 @@ class Product(models.Model):
 
 
 class Comment(models.Model):
-    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -45,3 +54,13 @@ class Comment(models.Model):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ['-created_at']
+
+
+class Rating(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
+    rating = models.IntegerField(choices=RATING_CHOICES, blank=True, null=True)
+
+    def __str__(self):
+        return f'Rating from {self.rating} to {self.product}'
+

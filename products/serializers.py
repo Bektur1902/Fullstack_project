@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Product, Category, Comment
+from .models import Product, Category, Comment, Rating
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -26,6 +26,20 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
+        fields = '__all__'
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        validated_data['author'] = user
+        return super().create(validated_data)
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.email')
+
+    class Meta:
+        model = Rating
         fields = '__all__'
 
     def create(self, validated_data):
