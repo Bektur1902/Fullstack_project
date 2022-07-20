@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Product, Category, Comment, Rating
+from .models import Product, Category, CommentAndRating, Favorite, Like
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -12,7 +12,26 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id','name', 'price', 'image']
+        fields = ['id', 'name', 'price', 'image']
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['like'] = LikeSerializer(instance.like.all(), many=True).data
+        rep['favorites'] = FavoritesSerializer(instance.favorites.all(), many=True).data
+        rep['rating'] = CommentAndRatingSerializer(instance.comments.all(), many=True).data
+        rep['comments'] = CommentAndRatingSerializer(instance.comments.all(), many=True).data
+
+        rating = [dict(i)['rating'] for i in rep['rating']]
+        like = sum([dict(i)['like'] for i in rep['like']])
+        rep['like'] = like
+        favorites = sum([dict(i)['favorites'] for i in rep['favorites']])
+        rep['favorites'] = favorites
+        if rating:
+            rep['rating'] = round((sum(rating) / len(rating)), 2)
+            return rep
+        else:
+            rep['rating'] = None
+            return rep
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -21,11 +40,11 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentAndRatingSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.email')
 
     class Meta:
-        model = Comment
+        model = CommentAndRating
         fields = '__all__'
 
     def create(self, validated_data):
@@ -35,15 +54,13 @@ class CommentSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class RatingSerializer(serializers.ModelSerializer):
-    author = serializers.ReadOnlyField(source='author.email')
-
+class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Rating
-        fields = '__all__'
+        model = Favorite
+        fields = ['author', 'product', 'favorites']
 
-    def create(self, validated_data):
-        request = self.context.get('request')
-        user = request.user
-        validated_data['author'] = user
-        return super().create(validated_data)
+
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = ['author', 'product', 'like']
