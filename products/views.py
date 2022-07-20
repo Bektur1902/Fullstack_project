@@ -1,17 +1,16 @@
-from rest_framework import mixins
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter
-from rest_framework import permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg.utils import swagger_auto_schema
+from rest_framework import permissions
 
 from .serializers import (
                             ProductSerializer, CategorySerializer,
-                            CommentSerializer, ProductListSerializer,
-                            RatingSerializer
+                            CommentAndRatingSerializer, ProductListSerializer,
 )
-from .models import Product, Category, Comment, Rating
+from .models import Product, Category, CommentAndRating, Like, Favorite
 from .filters import ProductsPriceFilter
 from .permissions import IsAuthor
 # Create your views here.
@@ -37,6 +36,41 @@ class ProductViewSet(ModelViewSet):
             self.permission_classes = [permissions.IsAuthenticated]
         return super().get_permissions()
 
+    @action(['GET'], detail=True)
+    def like(self, request, pk=None):
+        product = self.get_object()
+        user = request.user
+
+        try:
+            like = Like.objects.filter(product_id=product, author=user)
+            like_ = not like[0].like
+            if like_:
+                like[0].save()
+            else:
+                like.delete()
+            message = 'Нравится' if like else 'Не нравится'
+        except IndexError:
+            Like.objects.create(product_id=product.id, author=user, like=True)
+            message = 'Нравится'
+        return Response(message, status=200)
+
+    @action(['GET'], detail=True)
+    def favorite(self, request, pk=None):
+        product = self.get_object()
+        user = request.user
+        try:
+            favorites = Favorite.objects.filter(product_id=product, author=user)
+            fav_ = not favorites[0].favorites
+            if fav_:
+                favorites[0].save()
+            else:
+                favorites.delete()
+            message = 'В избранном' if favorites else 'Не в избранном'
+        except IndexError:
+            Favorite.objects.create(product_id=product.id, author=user, favorites=True)
+            message = 'В избранном'
+        return Response(message, status=200)
+
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
@@ -50,9 +84,9 @@ class CategoryViewSet(ModelViewSet):
         return super().get_permissions()
 
 
-class CommentViewSet(ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+class CommentAndRatingViewSet(ModelViewSet):
+    queryset = CommentAndRating.objects.all()
+    serializer_class = CommentAndRatingSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_permissions(self):
@@ -61,17 +95,5 @@ class CommentViewSet(ModelViewSet):
         if self.action in ['create']:
             self.permission_classes = [permissions.IsAuthenticated]
         if self.action in ['destroy', 'update', 'partial_update']:
-            self.permission_classes = [IsAuthor]
-        return super().get_permissions()
-
-
-class RatingViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, GenericViewSet):
-    queryset = Rating.objects.all()
-    serializer_class = RatingSerializer
-
-    def get_permissions(self):
-        if self.action in ['list']:
-            self.permission_classes = [permissions.AllowAny]
-        if self.action in ['create']:
             self.permission_classes = [IsAuthor]
         return super().get_permissions()

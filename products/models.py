@@ -26,6 +26,9 @@ class Category(models.Model):
             self.slug = slugify(self.name)
         super(Category, self).save(*args, **kwargs)
 
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
 class Product(models.Model):
     name = models.CharField(max_length=100)
@@ -39,28 +42,55 @@ class Product(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    class Meta:
+        verbose_name = 'Продукт'
+        verbose_name_plural = 'Продукты'
 
-class Comment(models.Model):
+
+class CommentAndRating(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments')
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    text = models.TextField(blank=True, null=True)
+    rating = models.IntegerField(choices=RATING_CHOICES, blank=True, null=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'Comment from {self.author.name} to {self.product}'
+        if self.rating and self.text:
+            return f'Comment and rating from {self.author.name} to {self.product}'
+        elif self.rating:
+            return f'Rating from {self.author.name} to {self.product}'
+        elif self.text:
+            return f'Comment from {self.author.name} to {self.product}'
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-        ordering = ['-created_at']
+        ordering = ['-create_date']
 
 
-class Rating(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
-    rating = models.IntegerField(choices=RATING_CHOICES, blank=True, null=True)
+class Favorite(models.Model):
+    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='favorites')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorites')
+    favorites = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'Rating from {self.rating} to {self.product}'
+        return f'{self.author}: favorites {self.product}'
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
+
+
+class Like(models.Model):
+    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='like')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='like')
+    like = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.author}: liked {self.product}'
+
+    class Meta:
+        verbose_name = 'Лайк'
+        verbose_name_plural = 'Лайки'
 
