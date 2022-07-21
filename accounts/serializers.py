@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.core.mail import send_mail
+from .tasks import send_activation_code
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -13,7 +15,7 @@ class RegistrationSerializer(serializers.Serializer):
 
     def validate_email(self, email):
         if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError('Почта уже занята')
+            raise serializers.ValidationError('Пользователь с данной почтой уже зарегестрирован')
         return email
 
     def validate(self, attrs):
@@ -26,14 +28,8 @@ class RegistrationSerializer(serializers.Serializer):
     def create(self):
         user = User.objects.create_user(**self.validated_data)
         user.create_activation_code()
-        user.send_activation_code()
-
-
-# class ActivationSerializer(serializers.Serializer):
-#     pass
-
-
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+        send_activation_code.delay(user.email, user.activation_code)
+        return user
 
 
 class LoginSerializer(TokenObtainPairSerializer):
