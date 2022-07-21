@@ -12,8 +12,3 @@ app.conf.update(result_expires=3600, enable_utc=True, timezone='UTC')
 app.conf.beat_schedule = {
 }
 app.conf.timezone = 'UTC'
-
-
-@app.task(bind=True)
-def test():
-    print('Hello world')
