@@ -1,3 +1,4 @@
+from rest_framework import mixins
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
@@ -8,7 +9,7 @@ from rest_framework import permissions
 
 from .serializers import (
                             ProductSerializer, CategorySerializer,
-                            CommentAndRatingSerializer, ProductListSerializer,
+                            CommentAndRatingSerializer, ProductListSerializer, FavoritesSerializer
 )
 from .models import Product, Category, CommentAndRating, Like, Favorite
 from .filters import ProductsPriceFilter
@@ -97,3 +98,9 @@ class CommentAndRatingViewSet(ModelViewSet):
         if self.action in ['destroy', 'update', 'partial_update']:
             self.permission_classes = [IsAuthor]
         return super().get_permissions()
+
+
+class FavoriteViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoritesSerializer
+    permission_classes = [permissions.IsAuthenticated]
