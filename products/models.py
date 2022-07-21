@@ -30,6 +30,7 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
+
 class Product(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -70,7 +71,7 @@ class CommentAndRating(models.Model):
 
 
 class Favorite(models.Model):
-    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='favorites')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorites')
     favorites = models.BooleanField(default=False)
 
@@ -83,7 +84,7 @@ class Favorite(models.Model):
 
 
 class Like(models.Model):
-    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='like')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='like')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='like')
     like = models.BooleanField(default=False)
 
